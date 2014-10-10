@@ -1,0 +1,75 @@
+{% if settings.playout == 1 || settings.playout == 4 %}
+	{# Layout 2 #}
+	{% set plscls = "col-xs-12" %}
+	{% set syncheight = false %}
+	{% set striped = false %}
+{% elseif settings.playout == 2 || settings.playout == 3 %}
+	{# Layout 4 #}
+	{% if loop.first && loop.last %}
+		{% set plscls = "col-lg-12 col-md-12 col-xs-12" %}
+	{% else %}
+		{% set plscls = "col-lg-4 col-md-6 col-sm-6 col-xs-12" %}
+	{% endif %}
+	{% set syncheight = true %}
+	{% set striped = false %}
+{% endif %}
+
+{% macro priceblk( clsExt ) %}
+	<div class="actionbtn{% if product.sdesc %} actionbtn-withsubtitle{% endif %}"><span class="val">Details</span><i class="arrow fa fa-chevron-right"></i></div>
+	<div class="pricewrp {{clsExt}}">
+	{% if product.aa %}
+		<div class="price aa">
+			<span class="val">Preis auf Anfrage</span>
+		</div>
+	{% elseif product.stock == 0 %}
+		<div class="price sold">
+			<span class="val">{{settings.waehrung}} {{ product.price }}</span>
+			<small class="stockinfo">Aktuell ausverkauft</small>
+		</div>
+	{% elif showstockunder > 0 && product.stock > 0 && product.stock < showstockunder %}
+		<div class="price few">
+			<span class="val">{{settings.waehrung}} {{ product.price }}</span>
+			<small class="stockinfo">Nur noch {{product.stock}} Stück auf Lager.</small>
+		</div>
+	{% else %}
+		<div class="price"><span class="val">{{settings.waehrung}} {{ product.price }}</span></div>
+	{% endif %}
+	</div>
+{% endmacro %}
+
+<a class="product playout{{settings.playout}} {{plscls}}{% if syncheight %} syncheight{% endif %}{% if striped %} striped{% endif %}" href="/{{sid}}/{% if categories.id %}{{categories.id}}/{% endif %}{{ product.id }}/product.html">
+	{% if settings.playout == 3 %}
+	<h4 class="title">{{ product.name }}</h4>
+	{% endif %}
+	{% set hasimage = false %}
+	{% if product.imgurl && product.imgurl.length && product.imgurl != "http://" %}
+	<div class="imagewrp"{%if settings.imagesize > 0 && !centered %} style="width:{{settings.imagesize}}px"{%endif%}>
+		{% if settings.imagesize > 0%}
+		<span class="img">
+			<img src="{{ product.imgurl|tfit(settings.imagesize) }}" />
+		</span>
+		{% set _imagesize = settings.imagesize %}
+		{%else%}
+		{% set _imagesize = 100 %}
+		<span class="img">
+			<img src="{{ product.imgurl|tfit(_imagesize) }}" />
+		</span>
+		{% endif %}
+	</div>
+	{% set hasimage = true %}
+	{% endif %}
+	<div {%if hasimage %} style="margin-left:{{_imagesize+20}}px"{%endif%}>
+		<div class="desc">
+			{% if settings.playout != 3 %}
+			<h4 class="title">{{ product.name }}</h4>
+			{{ priceblk() }}
+			{% endif %}
+			{% if product.sdesc %}<p class="subtitle">{{ product.sdesc|safe }}</h4>{% endif %}
+		</div>
+	</div>
+	{% if settings.playout == 3 %}
+	<div class="bottompricebtn">
+	{{ priceblk( "" ) }}
+	</div>
+	{% endif %}
+</a>

@@ -1,0 +1,57 @@
+{% if settings.layout == 1 %}
+	{# Layout 1 #}
+	{% set catcls = "col-lg-12 col-md-12 col-sm-12 col-xs-12" %}
+	{% set syncheight = false %}
+	{% set striped = true %}
+{% elseif settings.layout == 4 %}
+	{# Layout 2 #}
+	{% set catcls = "col-lg-12 col-md-12 col-sm-12 col-xs-12" %}
+	{% set syncheight = false %}
+	{% set striped = false %}
+{% elseif settings.layout == 2 %}
+	{# Layout 3 #}
+	{% set catcls = "col-lg-4 col-md-6 col-sm-6 col-xs-12" %}
+	{% set syncheight = true %}
+	{% set striped = false %}
+	{% set centered = true %}
+{% elseif settings.layout == 3 %}
+	{# Layout 4 #}
+	{% set catcls = "col-lg-4 col-md-6 col-sm-6 col-xs-12" %}
+	{% set syncheight = true %}
+	{% set striped = false %}
+{% endif %}
+<div class="categories{% if syncheight %} syncheight{% endif %}{% if striped %} striped{% endif %} clayout{{settings.layout}} clearfix">
+	<ol class="breadcrumb">
+		{% for idx, cat in categories.parents %}
+			<li><a href="/{{sid}}{% if cat.id %}/{{cat.id}}{% endif %}/index.html">{{cat.name}}</a></li>
+		{% endfor %}
+		<li class="active"><a href="/{{sid}}{% if categories.id %}/{{categories.id}}{% endif %}/index.html">{{categories.name}}</a></li>
+	</ol>
+	{% if not hideCategories %}
+		{% for idx, cat in categories.categories %}
+		<a class="category {{catcls}}{% if centered %} centered{% endif %}{% if cat.imgurl && cat.imgurl.length && cat.imgurl != "http://" %} hasimage{% endif %}" href="/{{sid}}/{{cat.id}}/index.html">
+			{% set hasimage = false %}
+			{% if cat.imgurl && cat.imgurl.length && cat.imgurl != "http://" %}
+			<div class="imagewrp"{%if settings.grpimagesize > 0 && !centered %} style="width:{{settings.grpimagesize}}px"{%endif%}>
+				{% if settings.grpimagesize > 0%}
+				<span class="img">
+					<img src="{{ cat.imgurl|tfit(settings.grpimagesize) }}" />
+				</span>
+				{% set _grpimagesize = settings.grpimagesize %}
+				{%else%}
+				{% set _grpimagesize = 125 %}
+				<span class="img">
+					<img src="{{ cat.imgurl|tfit(_grpimagesize) }}" />
+				</span>
+				{% endif %}
+			</div>
+			{% set hasimage = true %}
+			{% endif %}
+			<dl{%if hasimage && !centered %} style="margin-left:{{_grpimagesize+20}}px"{%endif%}>
+				<dt class="title">{{cat.name}}</dt>
+				{% if cat.description && cat.description.length %}<dd class="desc">{{cat.description}}</dd>{% endif %}
+			</dl>
+		</a>
+		{% endfor %}
+	{% endif %}
+</div>

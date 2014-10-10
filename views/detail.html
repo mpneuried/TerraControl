@@ -1,0 +1,177 @@
+{% extends 'frame.html' %}
+
+
+{% block header %}
+	{% set canonical_cat = detail.categories|last %}
+	<link rel="canonical" href="/{{sid}}/{% if canonical_cat.id %}{{canonical_cat.id}}/{% endif %}{{ detail.id }}/product.html" />
+{% endblock %}
+
+{% block body %}
+
+	<div class="container main {% if not hasshopdesc %} headermargin{% endif %}">
+		{% set hideCategories = true %}
+		{% include "./blocks/categories.html" %}
+
+		<div class="row product dlayout{{settings.dlayout}} productdetail">
+			<a name="productdetail"></a>
+			{% set det_hasimage = false %}
+			{% if detail.imgurl && detail.imgurl.length && detail.imgurl != "http://" %}
+				<div class="col-sm-4 detailimage">
+					{% if detail.images.length > 1 %}
+					<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+						<!-- Indicators -->
+						<ol class="carousel-indicators">
+							{% for idx, img in detail.images %}
+							<li data-target="#carousel-example-generic" data-slide-to="{{ idx }}" class="active"></li>
+							{% endfor %}
+						</ol>
+						<!-- Wrapper for slides -->
+						<div class="carousel-inner">
+							{% for idx, img in detail.images %}
+							<div class="item{% if idx == 0 %} active{%endif%}">
+								<div class="img" style="background-image: url( '{{img|tsize(400)}}' )"></div>
+							</div>
+							{% endfor %}
+						</div>
+						<!-- Controls -->
+						<a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+							<span class="fa fa-chevron-left"></span>
+						</a>
+						<a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+							<span class="fa fa-chevron-right"></span>
+						</a>
+					</div>
+					{% else %}
+					<div class="imagewrp easyzoom easyzoom--overlay" data-startbymousedown="true" data-loadingnotice="Detail Bild laden ..." data-errornotice="Detail Bild konnte nicht geladen werden" >
+						<a href="{{ detail.imgurl|tsize(1200) }}" class="img visible-xxs">
+							<img src="{{ detail.imgurl|tfit(320) }}" />
+						</a>
+						<a href="{{ detail.imgurl|tsize(1200) }}" class="img visible-xs" >
+							<img src="{{ detail.imgurl|tfit(500) }}" />
+						</a>
+						<a href="{{ detail.imgurl|tsize(1200) }}" class="img visible-sm" >
+							<img src="{{ detail.imgurl|tsize(320) }}" />
+						</a>
+						<a href="{{ detail.imgurl|tsize(1200) }}" class="img visible-md" >
+							<img src="{{ detail.imgurl|tsize(320) }}" />
+						</a>
+						<a href="{{ detail.imgurl|tsize(1200) }}" class="img visible-lg" >
+							<img src="{{ detail.imgurl|tsize(320) }}" />
+						</a>
+					</div>
+					{% endif %}
+				</div>
+				{% set det_hasimage = true %}
+			{% endif %}
+			<div class="{% if det_hasimage %}col-sm-8{% else %}col-sm-12{% endif %} detailcontent">
+				<form action="{{checkoutpath}}" method="get">	
+					<input type="hidden" name="id" value="{{sid}}">
+					<input type="hidden" name="pid" value="{{detail.id}}">
+					<div class="desc">
+						<h4 class="title">{{ detail.name }}</h4>
+						{% if detail.descriptionshort %}<p class="subtitle">{{ detail.descriptionshort|safe }}</h4>{% endif %}
+					</div>
+
+					{% if detail.models && detail.models.length %}
+						{% set _price = detail.models[0][ "price" ] %}
+						{% set _nettoprice = detail.models[0][ "nettoprice" ] %}
+					{% else %}
+						{% set _price = detail.price %}
+						{% set _nettoprice = detail.nettoprice %}
+						{% set _prevprice = detail.prevprice %}
+					{% endif %}
+
+
+					<div class="pricewrp">
+						{% if detail.aa %}
+							<div class="price aa">
+								<span class="val">Preis auf Anfrage</span>
+							</div>
+						{% elseif detail.stock == 0 %}
+							<div class="price sold">
+								{% if _prevprice %}<span class="prevval">{{settings.waehrung}} {{ _prevprice }}</span>{% endif %}		
+								<span class="val">{{settings.waehrung}} {{ _price }}</span>
+								<small class="small">Alle Preisangaben inkl. {% if detail.mwst == 1 %}19%{% elseif detail.mwst == 2 %}7%{% endif %} MwSt.</small>
+								{% if _nettoprice %}<span class="valnetto">Netto: {{settings.waehrung}} {{ _nettoprice }}</span>{% endif %}
+								<small class="stockinfo">Aktuell ausverkauft</small>
+							</div>
+						{% elif showstockunder > 0 && detail.stock > 0 && detail.stock < showstockunder %}
+							<div class="price few">
+								{% if _prevprice %}<span class="prevval">{{settings.waehrung}} {{ _prevprice }}</span>{% endif %}
+								<span class="val">{{settings.waehrung}} {{ _price }}</span>
+								<small class="small">Alle Preisangaben inkl. {% if detail.mwst == 1 %}19%{% elseif detail.mwst == 2 %}7%{% endif %} MwSt.</small>
+								{% if _nettoprice %}<span class="valnetto">Netto: {{settings.waehrung}} {{ _nettoprice }}</span>{% endif %}
+								<small class="stockinfo">Nur noch {{detail.stock}} Stück auf Lager.</small>
+								{% if detail.vkf %}
+									<small class="small vkf">Versandkostenfrei</small>
+								{% elseif detail.vkz && detail.vkz != "0,00" %}
+									<small class="small vkz">Zusätzliche Versandkosten: {{settings.waehrung}} {{ detail.vkz }}</small>
+								{% endif %}
+							</div>
+						{% else %}
+							<div class="price">
+								{% if _prevprice %}<span class="prevval">{{settings.waehrung}} {{ _prevprice }}</span>{% endif %}
+								<span class="val">{{settings.waehrung}} {{ _price }}</span>
+								<small class="small">Alle Preisangaben inkl. {% if detail.mwst == 1 %}19%{% elseif detail.mwst == 2 %}7%{% endif %} MwSt.</small>
+								{% if _nettoprice %}<span class="valnetto">Netto: {{settings.waehrung}} {{ _nettoprice }}</span>{% endif %}
+								{% if detail.vkf %}
+									<small class="small vkf">Versandkostenfrei</small>
+								{% elseif detail.vkz && detail.vkz != "0,00" %}
+									<small class="small vkz">Zusätzliche Versandkosten: {{settings.waehrung}} {{ detail.vkz }}</small>
+								{% endif %}
+							</div>
+						{% endif %}
+						{% if detail.models && detail.models.length %}
+							<button type="submit" class="actionbtn">{% if detail.aa %}Anfragen <i class="arrow fa fa-envelope-o"></i>{% else %}in den Warenkorb<i class="arrow fa fa-shopping-cart"></i>{% endif %}</button>
+						{% else %}
+							<button type="submit" href="{{checkoutpath}}?id={{sid}}&pid={{detail.id}}" class="actionbtn">{% if detail.aa %}Anfragen <i class="arrow fa fa-envelope-o"></i>{% else %}in den Warenkorb<i class="arrow fa fa-shopping-cart"></i>{% endif %}</button>
+						{% endif %}
+					</div>
+		
+					{% if detail.models && detail.models.length %}
+						<label>{{detail.m_name}}</label>
+						<div class="btn-group modelselect clearfix" data-toggle="modelselect" data-prefix="" data-value="{{detail.models[0].id}}">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+								<span class="selected">{{detail.models[0].model}}</span> <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu" role="menu">
+								{% for model in detail.models %}
+									<li>
+										{% if model.stock >= 0 ||  model.stock == -1 %}
+										<label class="btn model" data-price="{{settings.waehrung}} {{model.price}}" data-nettoprice="{{settings.waehrung}} {{model.nettoprice}}" data-model="{{model.id}}" data-title="{{model.model}}" data-pricekey="{{model.pricekey}}">
+											<input type="radio" autocomplete="off" name="md" value="{{model.id}}" {% if loop.index0 == 0 %}checked="checked"{% endif %} />
+											<span>{{model.model}} </span>
+											<small class="pricekey pricekey-{{model.pricekey}}"{% if detail.models[0].pricekey == model.pricekey %} style="display:none;"{% endif %}>{{settings.waehrung}} {{model.price}}{%if model.nettoprice %}<i class="valnetto"> (Netto: {{settings.waehrung}} {{model.nettoprice}} )</i>{% endif %}</small>
+											{% if showstockunder > 0 && model.stock > 0 && model.stock < showstockunder %}
+											<p class="stockinfo">Nur noch {{model.stock}} Stück auf Lager.</p>
+											{% endif %}
+										</label>
+										{% else %}
+										<div class="btn model sold">
+											<span>{{model.model}} </span>
+											<small class="pricekey pricekey-{{model.pricekey}}"{% if detail.models[0].pricekey == model.pricekey %} style="display:none;"{% endif %}>{{settings.waehrung}} {{model.price}}{%if model.nettoprice %}<i class="valnetto"> (Netto: {{settings.waehrung}} {{model.nettoprice}} )</i>{% endif %}</small>
+											<p class="stockinfo">Aktuell ausverkauft</p>
+										</div>
+										{% endif %}
+										
+									</li>
+								{% endfor %}
+							</ul>
+						</div>
+					{% endif %}
+					
+
+					{% if detail.specurl && detail.specurl.length && detail.specurl != "http://" %}
+					<a class="specurl" href="{{ detail.specurl }}" target="_new">
+						<i class="fa fa-external-link"></i> {% if detail.specurldesc && detail.specurldesc.length %}{{detail.specurldesc}}{% else %}{{ detail.specurl }}{% endif %} 
+					</a>
+					{% endif %}
+					<div class="description">{{detail.descriptionlong|safe}}</div>
+				</form>
+			</div>
+
+		</div>
+
+
+	</div> <!-- /container -->
+{% endblock %}
